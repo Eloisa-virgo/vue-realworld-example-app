@@ -117,8 +117,8 @@ jobs:
                   <div class="avatar">
                       <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Eloisa" alt="Profile">
                   </div>
-                  <h1>樊含叶</h1>
-                  <div class="student-id">Student ID: 20242233</div>
+                  <h1>Fan Hanye</h1>
+                  <div class="student-id">Student ID: 20242218</div>
                   <div class="info">
                       Software Engineering Student<br>
                       College of Computer Science, North Minzu University
@@ -126,11 +126,11 @@ jobs:
                   <div class="info-card">
                       <div class="info-row">
                           <span class="label">Name</span>
-                          <span class="value">樊含叶</span>
+                          <span class="value">Fan Hanye</span>
                       </div>
                       <div class="info-row">
                           <span class="label">Student ID</span>
-                          <span class="value">20242233</span>
+                          <span class="value">20242218</span>
                       </div>
                       <div class="info-row">
                           <span class="label">Program</span>
