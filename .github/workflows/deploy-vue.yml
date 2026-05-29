@@ -8,158 +8,35 @@ jobs:
   deploy-app:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
+      - name: check out the code to build server
         uses: actions/checkout@v4
 
-      - name: Write teacher-matching static page
-        run: |
-          mkdir -p dist
-          cat > dist/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Eloisa's Vue Lab</title>
-              <style>
-                  * {
-                      margin: 0;
-                      padding: 0;
-                      box-sizing: border-box;
-                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                  }
-                  body {
-                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                      min-height: 100vh;
-                      display: flex;
-                      justify-content: center;
-                      align-items: center;
-                      padding: 20px;
-                  }
-                  .card {
-                      background: white;
-                      border-radius: 16px;
-                      width: 100%;
-                      max-width: 600px;
-                      padding: 40px;
-                      text-align: center;
-                      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-                  }
-                  .avatar {
-                      width: 160px;
-                      height: 160px;
-                      border-radius: 50%;
-                      border: 4px solid #667eea;
-                      margin: 0 auto 24px;
-                      overflow: hidden;
-                      background: #f0f0f0;
-                  }
-                  .avatar img {
-                      width: 100%;
-                      height: 100%;
-                      object-fit: cover;
-                  }
-                  h1 {
-                      font-size: 32px;
-                      font-weight: 700;
-                      color: #1a1a1a;
-                      margin-bottom: 8px;
-                  }
-                  .student-id {
-                      font-size: 20px;
-                      color: #667eea;
-                      font-weight: 500;
-                      margin-bottom: 24px;
-                  }
-                  .info {
-                      font-size: 16px;
-                      color: #333;
-                      margin-bottom: 32px;
-                      line-height: 1.6;
-                  }
-                  .info-card {
-                      background: #f8f9fa;
-                      border-radius: 12px;
-                      padding: 24px;
-                      margin-bottom: 32px;
-                      text-align: left;
-                  }
-                  .info-row {
-                      display: flex;
-                      justify-content: space-between;
-                      padding: 12px 0;
-                      border-bottom: 1px solid #eee;
-                  }
-                  .info-row:last-child {
-                      border-bottom: none;
-                  }
-                  .label {
-                      font-weight: 600;
-                      color: #666;
-                  }
-                  .value {
-                      color: #333;
-                  }
-                  .deploy-btn {
-                      background: #28a745;
-                      color: white;
-                      border: none;
-                      padding: 12px 24px;
-                      border-radius: 8px;
-                      font-size: 16px;
-                      font-weight: 500;
-                      cursor: pointer;
-                  }
-              </style>
-          </head>
-          <body>
-              <div class="card">
-                  <div class="avatar">
-                      <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Eloisa" alt="Profile">
-                  </div>
-                  <h1>Fan Hanye</h1>
-                  <div class="student-id">Student ID: 20242218</div>
-                  <div class="info">
-                      Software Engineering Student<br>
-                      College of Computer Science, North Minzu University
-                  </div>
-                  <div class="info-card">
-                      <div class="info-row">
-                          <span class="label">Name</span>
-                          <span class="value">Fan Hanye</span>
-                      </div>
-                      <div class="info-row">
-                          <span class="label">Student ID</span>
-                          <span class="value">20242218</span>
-                      </div>
-                      <div class="info-row">
-                          <span class="label">Program</span>
-                          <span class="value">Software Engineering</span>
-                      </div>
-                      <div class="info-row">
-                          <span class="label">Course</span>
-                          <span class="value">Basic Development and Operation</span>
-                      </div>
-                      <div class="info-row">
-                          <span class="label">Lab</span>
-                          <span class="value">Lab 07 - Automated Deployment</span>
-                      </div>
-                  </div>
-                  <button class="deploy-btn">Deployed via GitHub Actions</button>
-              </div>
-          </body>
-          </html>
-          EOF
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
 
-      - name: Set folder permission
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: build the code
+        run: |
+          pnpm install --no-frozen-lockfile
+          pnpm build
+
+      - name: set the ubuntu user as the owner of the /var/www/html directory
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.SSH_USER_NAME }}
           key: ${{ secrets.SSH_KEY }}
-          script: sudo chown -R ubuntu /var/www/html
+          script: |
+            sudo chown -R ubuntu /var/www/html
 
-      - name: Copy static files to new server
+      - name: copy file to server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.PROD_HOST }}
@@ -169,10 +46,11 @@ jobs:
           target: "/var/www/html"
           strip_components: 1
 
-      - name: Restore permission
+      - name: set the root user back as the owner of the /var/www/html directory
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.SSH_USER_NAME }}
           key: ${{ secrets.SSH_KEY }}
-          script: sudo chown -R root /var/www/html
+          script: |
+            sudo chown -R root /var/www/html
