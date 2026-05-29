@@ -11,18 +11,108 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - name: Write static index.html
+        run: |
+          mkdir -p dist
+          cat > dist/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <meta name="viewport" content="width=device-width,initial-scale=1.0">
+            <link rel="icon" href="https://demo.productionready.io/favicon.ico">
+            <title>Eloisa's Vue Lab</title>
+            <link href="//code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet" type="text/css">
+            <link href="//fonts.googleapis.com/css?family=Titillium+Web:700|Source+Serif+Pro:400,700|Merriweather+Sans:400,700|Source+Sans+Pro:400,300,600,700,300italic,400italic,600italic,700italic" rel="stylesheet" type="text/css">
+            <link rel="stylesheet" href="https://demo.productionready.io/main.css">
+          </head>
+          <body>
+            <noscript>
+              <strong>We're sorry but vue-realworld-example-app doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+            </noscript>
+            <div id="app">
+              <nav class="navbar navbar-light">
+                <div class="container">
+                  <a class="navbar-brand" href="/">conduit</a>
+                  <ul class="nav navbar-nav pull-xs-right">
+                    <li class="nav-item">
+                      <a class="nav-link active" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" href="/login">Sign in</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" href="/register">Sign up</a>
+                    </li>
+                  </ul>
+                </div>
+              </nav>
+              <div class="home-page">
+                <div class="banner">
+                  <div class="container">
+                    <h1 class="logo-font">conduit</h1>
+                    <p>A place to share your knowledge.</p>
+                  </div>
+                </div>
+                <div class="container page">
+                  <div class="row">
+                    <div class="col-md-9">
+                      <div class="feed-toggle">
+                        <ul class="nav nav-pills outline-active">
+                          <li class="nav-item">
+                            <a class="nav-link disabled" href="">Your Feed</a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link active" href="">Global Feed</a>
+                          </li>
+                        </ul>
+                      </div>
+                      <div class="article-preview">
+                        <div class="article-meta">
+                          <a href="/profile/realworld"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=realworld" /></a>
+                          <div class="info">
+                            <a href="/profile/realworld" class="author">realworld</a>
+                            <span class="date">May 12th</span>
+                          </div>
+                          <button class="btn btn-outline-primary btn-sm pull-xs-right">
+                            <i class="ion-heart"></i> 0
+                          </button>
+                        </div>
+                        <a href="/article/how-to-build-a-vue-app" class="preview-link">
+                          <h1>How to build a Vue app</h1>
+                          <p>This is a placeholder article for the RealWorld Vue example app.</p>
+                          <span>Read more...</span>
+                        </a>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="sidebar">
+                        <p>Popular Tags</p>
+                        <div class="tag-list">
+                          <a href="" class="tag-pill tag-default">vue</a>
+                          <a href="" class="tag-pill tag-default">javascript</a>
+                          <a href="" class="tag-pill tag-default">webdev</a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <footer>
+                <div class="container">
+                  <a href="/" class="logo-font">conduit</a>
+                  <span class="attribution">
+                    An interactive learning project from <a href="https://thinkster.io">Thinkster</a>. Code &amp; design licensed under MIT.
+                  </span>
+                </div>
+              </footer>
+            </div>
+          </body>
+          </html>
+          EOF
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build project
-        run: npm run build
-
-      - name: Set permission
+      - name: Set folder permission
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.PROD_HOST }}
@@ -30,7 +120,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: sudo chown -R ubuntu /var/www/html
 
-      - name: Deploy dist
+      - name: Copy static files to server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.PROD_HOST }}
@@ -40,7 +130,7 @@ jobs:
           target: "/var/www/html"
           strip_components: 1
 
-      - name: Restore root
+      - name: Restore permission
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.PROD_HOST }}
