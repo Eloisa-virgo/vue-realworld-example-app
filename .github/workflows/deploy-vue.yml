@@ -3,30 +3,30 @@ on:
   push:
     branches:
       - master
+      - prod
+
 jobs:
   deploy-app:
     runs-on: ubuntu-latest
     steps:
-      - name: check out the code to build server
+      - name: Check out the code
         uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-          run_install: false
-
-      - name: Use Node.js 20.x
+      # 1. 适配你的项目：用 npm 替代 pnpm，使用稳定的 Node 16（和项目完美兼容）
+      - name: Use Node.js 16.x
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'pnpm'
+          node-version: 16
+          cache: 'npm'
 
-      - name: build the code
+      # 2. 安装依赖 + 构建（跳过 node-sass 编译脚本，解决 Python 报错）
+      - name: Install dependencies and build
         run: |
-          pnpm install --no-frozen-lockfile
-          pnpm build
+          npm install --ignore-scripts
+          npm run build
 
-      - name: copy file to server
+      # 3. 上传构建产物到服务器（和你原来的配置一致）
+      - name: Copy files to server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
