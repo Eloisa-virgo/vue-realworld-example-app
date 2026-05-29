@@ -12,20 +12,17 @@ jobs:
       - name: check out the code to build server
         uses: actions/checkout@v4
 
-      # 1. 彻底删掉所有 pnpm 相关配置，只留 npm
       - name: Use Node.js 16.x
         uses: actions/setup-node@v4
         with:
           node-version: 16
           cache: 'npm'
 
-      # 2. 构建命令适配 npm，跳过所有报错环节
       - name: build the code
         run: |
           npm install --ignore-scripts
           npm run build -- --no-lint
 
-      # 3. 服务器上传步骤完全不变
       - name: copy file to server
         uses: appleboy/scp-action@master
         with:
